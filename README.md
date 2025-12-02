@@ -7,7 +7,7 @@
 An intelligent, multimodal dialogue system designed to assist field technicians with real-time maintenance and troubleshooting. Powered by **Google Gemini 2.5 Flash**, this application utilizes **RAG (Retrieval-Augmented Generation)** to provide accurate answers based on uploaded technical manuals.
 
 ## 🚀 Live Demo
-[Click here to view the Live App]([https://bakim-asistani.streamlit.app](https://bakim-asistani-jpfvkf7kjyoqrzwpsqsthy.streamlit.app/)) 
+[Click here to view the Live App][https://bakim-asistani.streamlit.app](https://bakim-asistani-jpfvkf7kjyoqrzwpsqsthy.streamlit.app/) 
 
 ## ✨ Key Features
 
