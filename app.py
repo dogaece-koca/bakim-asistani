@@ -146,71 +146,73 @@ except Exception as e:
     st.error(f"Model initialization failed. Check API Key: {e}")
     st.stop()
 
+# --- SOHBET GEÇMİŞİ BAŞLATMA ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-        if "image" in message:
-            st.image(message["image"], caption="Uploaded Image", width=300)
-
-# ---KULLANICI GİRDİ ALANI ---
-with st.expander("📷 Add Image (Optional)"):
-
-    uploaded_image = st.file_uploader("Upload a photo of the faulty part", type=["jpg", "jpeg", "png"])
-
-# --- GEÇMİŞ MESAJLARI GÖSTER  ---
-
+# --- 1. SOHBET GEÇMİŞİNİ EKRANA YAZDIR ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "image" in message and message["image"]:
             st.image(message["image"], width=300)
 
-# --- YENİ MESAJ VE AI CEVABI ---
-if prompt := st.chat_input("Ask a question about maintenance..."):
-    user_message = {"role": "user", "content": prompt}
+# --- 2. RESİM YÜKLEME ALANI ---
+with st.expander("📷 Add Image (Optional)"):
+    uploaded_image = st.file_uploader("Upload a photo of the faulty part", type=["jpg", "jpeg", "png"])
 
+# --- 3. KULLANICI GİRDİSİ VE CEVAP ÜRETME ---
+if prompt := st.chat_input("Ask a question about maintenance..."):
+
+    # A) Kullanıcı mesajını hazırla
+    user_message = {"role": "user", "content": prompt}
     img_data = None
     if uploaded_image:
         img_data = Image.open(uploaded_image)
         user_message["image"] = img_data
 
+    # B) Kullanıcı mesajını hafızaya ekle ve ekrana yaz
     st.session_state.messages.append(user_message)
-
     with st.chat_message("user"):
         st.markdown(prompt)
         if img_data:
             st.image(img_data, width=300)
 
-    # 2. AI Cevabını Üret
+    # C) AI Cevabını Üret
     with st.chat_message("assistant"):
-        with st.spinner("Analyzing manual and history..."):
+        with st.spinner("Analyzing..."):
             try:
+                # Geçmiş konuşmayı METİN olarak hazırla
                 chat_history_text = ""
+                # Son mesajı hariç tutuyoruz ([:-1]), çünkü o zaten 'prompt' değişkeninde var
                 for msg in st.session_state.messages[:-1]:
                     role_label = "TECHNICIAN (User)" if msg["role"] == "user" else "SENIOR ENGINEER (You)"
                     chat_history_text += f"{role_label}: {msg['content']}\n"
 
+                # Prompt'u birleştir
                 full_prompt = f"""
-                PREVIOUS CONVERSATION HISTORY:
-                {chat_history_text}
+                    PREVIOUS CONVERSATION HISTORY:
+                    {chat_history_text}
 
-                CURRENT USER INPUT:
-                {prompt}
+                    CURRENT USER INPUT:
+                    {prompt}
 
-                INSTRUCTION: 
-                Review the history. If the user says "problem persists" or "didn't work", DO NOT repeat previous advice. Provide the NEXT logical troubleshooting step (Advanced/General Knowledge).
-                """
+                    INSTRUCTION: 
+                    Review the history. 
+                    If the user says "problem persists" or "didn't work", DO NOT repeat previous advice. Provide the NEXT logical troubleshooting step.
+                    **DO NOT repeat the conversation history in your response.** Just provide the answer.
+                    """
 
+                # Modele gönder
                 if img_data:
                     response = model.generate_content([full_prompt, img_data])
                 else:
                     response = model.generate_content(full_prompt)
 
+                # Cevabı ekrana yaz
                 st.markdown(response.text)
 
+                # Cevabı hafızaya kaydet (böylece silinmez)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
 
             except Exception as e:
