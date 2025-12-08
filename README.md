@@ -3,28 +3,49 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.31%2B-red)
 ![Gemini](https://img.shields.io/badge/AI-Google%20Gemini%202.5-orange)
+![Architecture](https://img.shields.io/badge/Architecture-Long%20Context%20Agent-green)
 
-An intelligent, multimodal dialogue system designed to assist field technicians with real-time maintenance and troubleshooting. Powered by **Google Gemini 2.5 Flash**, this application utilizes **RAG (Retrieval-Augmented Generation)** to provide accurate answers based on uploaded technical manuals.
+A state-aware, multimodal dialogue agent designed to assist field technicians with real-time maintenance and troubleshooting. Unlike traditional chatbots, this system acts as a **Senior Field Engineer**, utilizing **Google Gemini 2.5 Flash**'s massive context window to digest entire technical manuals instantly, enforcing strict safety protocols, and adapting its reasoning based on conversation history.
 
 ## 🚀 Live Demo
-[Click here to view the Live App](https://maintenance-agent-jpfvkf7kjyoqrzwpsqsthy.streamlit.app) 
+[Click here to view the Live App](https://maintenance-agent-jpfvkf7kjyoqrzwpsqsthy.streamlit.app)
 
-## ✨ Key Features
+## ✨ Key Features & Technical Innovations
 
-* **📄 Dynamic RAG System:** Upload any technical manual (PDF), and the AI instantly becomes an expert on that specific device.
-* **📷 Multimodal Analysis:** Technicians can upload photos of faulty parts. The AI analyzes the visual data alongside the technical manual to diagnose issues.
-* **🌍 Bilingual Support (TR/EN):** Automatically detects the language of the query.
-    * Asks in **English** → Replies in **English**.
-    * Asks in **Turkish** → Replies in **Turkish**.
-* **⚡ High Performance:** Uses `gemini-2.5-flash` for low-latency responses, crucial for field operations.
-* **📱 Mobile Friendly:** Designed with Streamlit to work seamlessly on tablets and smartphones used by field agents.
+### 🧠 Hybrid Knowledge Architecture
+The system employs a tiered retrieval logic to prevent hallucinations:
+* **Tier 1 (Official Manual):** Prioritizes the uploaded PDF to ensure compliance.
+* **Tier 2 (General Knowledge Fallback):** Automatically switches to "General Engineering Knowledge" if the manual lacks specific repair steps, clearly tagging the source (e.g., `⚠️ SOURCE: GENERAL KNOWLEDGE`).
+
+### 📖 Holistic Document Understanding (Long Context)
+Instead of traditional RAG (chunking), this agent injects the **entire technical manual** into the model's context window. This preserves critical cross-references (e.g., linking an error code on page 50 to a wiring diagram on page 120) that split-search methods often miss.
+
+### 🔄 State-Aware Troubleshooting (Memory)
+The agent possesses **Conversational Memory**. It remembers previous steps and adapts its advice.
+* *User:* "It didn't work."
+* *Agent:* Acknowledges the failure and automatically **escalates** to advanced diagnostics (e.g., PCB inspection) instead of repeating the same basic steps.
+
+### 🛡️ Protocol-Driven Safety
+Every response is structurally enforced to follow a mandatory workflow:
+1.  **🚨 Safety First:** Immediate risk warnings (High Voltage, Pressure, etc.).
+2.  **🛠️ Tools Required:** Listing specific equipment needed.
+3.  **📋 Step-by-Step Instructions:** Active, imperative commands.
+4.  **✅ Verification:** How to confirm the fix.
+
+### 📷 Native Multimodality (Visual Diagnosis)
+Technicians can upload photos of faulty parts. The AI performs **pixel-level analysis** to identify defects (corrosion, burnt components, cracks) and correlates them with the manual's troubleshooting section.
+
+### 🌍 Dynamic Localization (TR/EN)
+Automatically detects the technician's language and adapts technical headers/terminology instantly.
+* **Turkish Input** → Turkish Persona & Headers (ÖNCE GÜVENLİK, vb.)
+* **English Input** → English Persona & Headers (SAFETY FIRST, etc.)
 
 ## 🛠️ Tech Stack
 
 * **Frontend:** [Streamlit](https://streamlit.io/)
-* **AI Model:** Google Gemini 2.5 Flash (via `google-generativeai`)
-* **PDF Processing:** `pypdf`
-* **Image Processing:** `Pillow` (PIL)
+* **Reasoning Engine:** Google Gemini 2.5 Flash (via `google-generativeai`)
+* **Data Processing:** `pypdf` (Text extraction), `Pillow` (Image processing)
+* **Architecture:** Long Context Injection + System Instruction Engineering
 
 ## ⚙️ Installation & Local Setup
 
@@ -47,7 +68,7 @@ To run this project locally, follow these steps:
     ```toml
     GOOGLE_API_KEY = "YOUR_API_KEY_HERE"
     ```
-   
+
 4.  **Run the application:**
     ```bash
     streamlit run app.py
@@ -55,10 +76,10 @@ To run this project locally, follow these steps:
 
 ## 📖 How to Use
 
-1.  **Upload Manual:** Open the sidebar and upload a PDF file (e.g., a refrigerator service manual).
-2.  **Wait for Processing:** The system will extract text and memorize the content.
-3.  **Ask a Question:** Type your technical question in the chat box.
-4.  **Upload Image (Optional):** If you see a damaged part or an unknown error icon, upload its photo to get a visual diagnosis.
+1.  **Upload Manual:** Open the sidebar and upload a service manual PDF.
+2.  **Initialize:** The agent ingests the full document and adopts the "Senior Engineer" persona.
+3.  **Ask or Show:** Type a problem (e.g., "Fridge leaking water") or upload a photo of the defect.
+4.  **Iterate:** If a solution fails, say "It didn't work". The agent will remember the context and guide you through deeper inspection steps.
 
 ## 📸 Screenshots
 
