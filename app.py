@@ -81,7 +81,7 @@ try:
             * Add a disclaimer: "The manual directs to service. As you are the technician, here are the standard industry steps."
 
         --- LANGUAGE & HEADER RULES ---
-        1.  **Detect Language:** If User input is Turkish -> Response MUST be Turkish.
+        1.  **Detect Language:** If User input is Turkish -> Response MUST be Turkish. If the User input is English -> Response MUST be English.
         2.  **Translate Headers (USE MARKDOWN ###):**
 
             * **IF TURKISH:**
