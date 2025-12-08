@@ -17,7 +17,7 @@ os.environ["GOOGLE_API_KEY"] = api_key
 genai.configure(api_key=api_key)
 MODEL_NAME = "gemini-2.5-flash"
 
-# ---SAYFA AYARLARI ---
+# --- SAYFA AYARLARI ---
 st.set_page_config(
     page_title="Field Maintenance Assistant",
     page_icon="🔧",
@@ -141,7 +141,15 @@ with st.expander("📷 Add Image (Optional)"):
 
     uploaded_image = st.file_uploader("Upload a photo of the faulty part", type=["jpg", "jpeg", "png"])
 
-# Metin Girişi
+# --- GEÇMİŞ MESAJLARI GÖSTER  ---
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+        if "image" in message and message["image"]:
+            st.image(message["image"], width=300)
+
+# --- YENİ MESAJ VE AI CEVABI ---
 if prompt := st.chat_input("Ask a question about maintenance..."):
     user_message = {"role": "user", "content": prompt}
 
@@ -157,12 +165,12 @@ if prompt := st.chat_input("Ask a question about maintenance..."):
         if img_data:
             st.image(img_data, width=300)
 
-    # --- AI CEVABI OLUŞTURMA ---
+    # 2. AI Cevabını Üret
     with st.chat_message("assistant"):
         with st.spinner("Analyzing manual and history..."):
             try:
                 chat_history_text = ""
-                for msg in st.session_state.messages:
+                for msg in st.session_state.messages[:-1]:
                     role_label = "TECHNICIAN (User)" if msg["role"] == "user" else "SENIOR ENGINEER (You)"
                     chat_history_text += f"{role_label}: {msg['content']}\n"
 
@@ -183,6 +191,8 @@ if prompt := st.chat_input("Ask a question about maintenance..."):
                     response = model.generate_content(full_prompt)
 
                 st.markdown(response.text)
+
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
