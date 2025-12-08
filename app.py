@@ -150,70 +150,77 @@ except Exception as e:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- 1. SOHBET GEÇMİŞİNİ EKRANA YAZDIR ---
+# --- 1. SOHBET GEÇMİŞİNİ EKRANA YAZDIR (Ana Döngü) ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "image" in message and message["image"]:
             st.image(message["image"], width=300)
 
-# --- 2. RESİM YÜKLEME ALANI ---
-with st.expander("📷 Add Image (Optional)"):
-    uploaded_image = st.file_uploader("Upload a photo of the faulty part", type=["jpg", "jpeg", "png"])
+# --- 2. RESİM YÜKLEME ALANI (DİNAMİK KEY İLE) ---
+# Uploader için bir sayaç tutuyoruz, böylece gönderim sonrası sıfırlayabiliriz.
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0
+
+img_data = None
+with st.expander("📷 Add Image (Optional)", expanded=True):
+    # Key değerini her gönderimde değiştirdiğimiz için uploader temizlenir
+    uploaded_image = st.file_uploader(
+        "Upload a photo of the faulty part",
+        type=["jpg", "jpeg", "png"],
+        key=f"uploader_{st.session_state.uploader_key}"
+    )
+    # Anlık önizleme (Henüz göndermeden görmeniz için)
+    if uploaded_image:
+        img_data = Image.open(uploaded_image)
+        st.image(img_data, caption="Eklenecek Görsel", width=200)
 
 # --- 3. KULLANICI GİRDİSİ VE CEVAP ÜRETME ---
 if prompt := st.chat_input("Ask a question about maintenance..."):
 
     # A) Kullanıcı mesajını hazırla
     user_message = {"role": "user", "content": prompt}
-    img_data = None
-    if uploaded_image:
-        img_data = Image.open(uploaded_image)
+    if img_data:
         user_message["image"] = img_data
 
-    # B) Kullanıcı mesajını hafızaya ekle ve ekrana yaz
+    # B) Kullanıcı mesajını hafızaya ekle
     st.session_state.messages.append(user_message)
-    with st.chat_message("user"):
-        st.markdown(prompt)
-        if img_data:
-            st.image(img_data, width=300)
 
     # C) AI Cevabını Üret
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing..."):
-            try:
-                # Geçmiş konuşmayı METİN olarak hazırla
-                chat_history_text = ""
-                # Son mesajı hariç tutuyoruz ([:-1]), çünkü o zaten 'prompt' değişkeninde var
-                for msg in st.session_state.messages[:-1]:
-                    role_label = "TECHNICIAN (User)" if msg["role"] == "user" else "SENIOR ENGINEER (You)"
-                    chat_history_text += f"{role_label}: {msg['content']}\n"
+    # Spinner'ı burada açıyoruz ama sonucu hemen ekrana basmıyoruz, hafızaya atıp rerun yapacağız.
+    with st.spinner("Analyzing..."):
+        try:
+            # Geçmiş konuşmayı METİN olarak hazırla
+            chat_history_text = ""
+            for msg in st.session_state.messages[:-1]:
+                role_label = "TECHNICIAN (User)" if msg["role"] == "user" else "SENIOR ENGINEER (You)"
+                chat_history_text += f"{role_label}: {msg['content']}\n"
 
-                # Prompt'u birleştir
-                full_prompt = f"""
-                    PREVIOUS CONVERSATION HISTORY:
-                    {chat_history_text}
+            # Prompt'u birleştir
+            full_prompt = f"""
+            PREVIOUS CONVERSATION HISTORY:
+            {chat_history_text}
 
-                    CURRENT USER INPUT:
-                    {prompt}
+            CURRENT USER INPUT:
+            {prompt}
 
-                    INSTRUCTION: 
-                    Review the history. 
-                    If the user says "problem persists" or "didn't work", DO NOT repeat previous advice. Provide the NEXT logical troubleshooting step.
-                    **DO NOT repeat the conversation history in your response.** Just provide the answer.
-                    """
+            INSTRUCTION: 
+            Review the history. 
+            If the user says "problem persists" or "didn't work", DO NOT repeat previous advice. Provide the NEXT logical troubleshooting step.
+            **DO NOT repeat the conversation history in your response.** Just provide the answer.
+            """
 
-                # Modele gönder
-                if img_data:
-                    response = model.generate_content([full_prompt, img_data])
-                else:
-                    response = model.generate_content(full_prompt)
+            # Modele gönder (Resim varsa listeye ekle)
+            if img_data:
+                response = model.generate_content([full_prompt, img_data])
+            else:
+                response = model.generate_content(full_prompt)
 
-                # Cevabı ekrana yaz
-                st.markdown(response.text)
+            # Cevabı hafızaya kaydet
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
 
-                # Cevabı hafızaya kaydet (böylece silinmez)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            st.session_state.uploader_key += 1
+            st.rerun()
 
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
