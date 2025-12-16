@@ -83,8 +83,10 @@ To run this project locally, follow these steps:
 
 ## 📸 Screenshots
 
-<img width="1867" height="827" alt="image" src="https://github.com/user-attachments/assets/ac8b4895-dbd0-4b8c-b5fd-8bf0cfd163f9" />
-<img width="1862" height="827" alt="image" src="https://github.com/user-attachments/assets/ba4d549d-8541-4297-99df-21d2c2d62dc1" />
+<img width="945" height="445" alt="image" src="https://github.com/user-attachments/assets/665ad08d-dd17-4e43-ae36-61a3d0cd692a" />
+<img width="1795" height="799" alt="image" src="https://github.com/user-attachments/assets/4aefeadf-7655-4ad0-9d66-90ca6dd4fbde" />
+<img width="1810" height="803" alt="image" src="https://github.com/user-attachments/assets/e8b305b5-1c6a-41b6-b6d9-8990bdd0dab1" />
+<img width="1807" height="816" alt="image" src="https://github.com/user-attachments/assets/0484be50-cfee-4f02-9d48-019ac9f3238f" />
 
 ## 🤝 Contributing
 
